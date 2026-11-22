@@ -1,0 +1,20 @@
+# Environment credentials and secrets
+.env
+.env.*
+!.env.example
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Generated prospect data and confidential outreach drafts
+outreach_drafts/
+prospect_sheets/
+*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db
