@@ -24,6 +24,15 @@ from matcher import match_opportunity
 from generator import generate_cold_email, generate_ai_enhanced_angles
 from mailer import send_batch_outreach, get_email_credentials, find_catalog_pdf
 from exporter import export_prospects_to_excel
+from crm import (
+    sync_batch_results_to_crm,
+    mark_as_contacted,
+    mark_as_replied,
+    process_due_follow_ups,
+    export_team_crm_excel,
+    get_crm_stats,
+    get_all_prospects
+)
 
 class Colors:
     HEADER = '\033[95m'
@@ -139,9 +148,11 @@ def run_autonomous_hunt(niche: str, location: str = "", count: int = 10, auto_se
                 "email_body": email_data["email_body"]
             })
 
-    # Save summary markdown report and Excel/Notion sheets
+    # Save summary markdown report, Excel/Notion sheets, and sync to persistent SQLite CRM
     saved_md = save_batch_report(batch_results, niche, location)
     excel_files = export_prospects_to_excel(batch_results, niche, location)
+    crm_ids = sync_batch_results_to_crm(batch_results, niche, location)
+    team_crm = export_team_crm_excel()
 
     # Print Summary Table
     print(f"\n{Colors.BOLD}{Colors.GREEN}[Step 3/4] Prospect Intelligence Summary Table:{Colors.ENDC}")
@@ -156,9 +167,10 @@ def run_autonomous_hunt(niche: str, location: str = "", count: int = 10, auto_se
         print(f"{idx:<3} | {comp:<20} | {em:<25} | {prob:<28}")
     print(f"{Colors.DIM}{border}{Colors.ENDC}")
     print(f"{Colors.GREEN}[OK] Outreach drafts saved to:{Colors.ENDC} {saved_md}")
-    if excel_files.get("xlsx"):
-        print(f"{Colors.GREEN}[OK] HR Excel Workbook created:{Colors.ENDC} {excel_files['xlsx']}")
-    print(f"{Colors.GREEN}[OK] Notion Database CSV created:{Colors.ENDC} {excel_files['csv']}\n")
+    print(f"{Colors.GREEN}[OK] Synced {len(crm_ids)} leads to SQLite CRM (crm.db){Colors.ENDC}")
+    if team_crm.get("xlsx"):
+        print(f"{Colors.GREEN}[OK] Master Team CRM Excel Workbook updated:{Colors.ENDC} {team_crm['latest_xlsx']}")
+    print(f"{Colors.GREEN}[OK] Notion Database CSV updated:{Colors.ENDC} {team_crm['csv']}\n")
 
     # Sample preview
     sample = batch_results[0]["email"]
@@ -198,19 +210,87 @@ def run_autonomous_hunt(niche: str, location: str = "", count: int = 10, auto_se
     for task in email_tasks:
         task["attach_catalog"] = attach_pdf
 
-    send_batch_outreach(email_tasks, delay_seconds=4, dry_run=dry_run)
+    results = send_batch_outreach(email_tasks, delay_seconds=4, dry_run=dry_run)
+
+    # If sent live, update the CRM stages to 'Contacted' and schedule 3-day follow-ups
+    if not dry_run:
+        contacted_count = 0
+        for task, res in zip(email_tasks, results):
+            if res.get("status") == "sent":
+                recipient = (task.get("recipients") or [""])[0]
+                if recipient:
+                    mark_as_contacted(recipient, notes=f"Initial outreach sent for {niche}", follow_up_days=3)
+                    contacted_count += 1
+        print(f"\n{Colors.GREEN}[OK] Updated {contacted_count} leads to 'Contacted' in CRM (Follow-up scheduled in 3 days).{Colors.ENDC}")
+        export_team_crm_excel()
+
+def show_crm_terminal_dashboard():
+    stats = get_crm_stats()
+    print(f"\n{Colors.BOLD}{Colors.CYAN}======================================================================{Colors.ENDC}")
+    print(f"{Colors.BOLD}{Colors.CYAN}          TARIQ & CO. TECH | PIPELINE & CRM DASHBOARD                {Colors.ENDC}")
+    print(f"{Colors.BOLD}{Colors.CYAN}======================================================================{Colors.ENDC}")
+    for k, v in stats.items():
+        color = Colors.GREEN if k in ["Replied", "Response Rate"] else (Colors.WARNING if "Due" in k else Colors.ENDC)
+        print(f"  {k:<22}: {color}{v}{Colors.ENDC}")
+    print(f"{Colors.DIM}{'-' * 70}{Colors.ENDC}")
+    
+    prospects = get_all_prospects()
+    print(f"{'#':<3} | {'Company':<18} | {'Email':<24} | {'Stage':<13} | {'Follow-up Due'}")
+    print(f"{Colors.DIM}{'-' * 70}{Colors.ENDC}")
+    for idx, p in enumerate(prospects[:15], 1):
+        st = p.get('stage', 'Discovered')
+        st_color = Colors.GREEN if st == 'Replied' else (Colors.BLUE if st == 'Contacted' else Colors.DIM)
+        cname = (p.get('company_name') or 'Prospect')[:17]
+        em = (p.get('primary_email') or 'No email')[:23]
+        due = p.get('follow_up_due_at') or '—'
+        print(f"{idx:<3} | {cname:<18} | {em:<24} | {st_color}{st:<13}{Colors.ENDC} | {due}")
+    
+    excel_info = export_team_crm_excel()
+    print(f"\n{Colors.GREEN}[OK] Master Team CRM Excel Workbook ready:{Colors.ENDC} {excel_info['latest_xlsx']}")
+    print(f"{Colors.GREEN}[OK] Notion CRM CSV Database ready:{Colors.ENDC} {excel_info['csv']}\n")
 
 def main():
     print_banner()
-    parser = argparse.ArgumentParser(description="Tariq & Co. Tech Autonomous Lead Hunter & Mailer")
+    parser = argparse.ArgumentParser(description="Tariq & Co. Tech Autonomous Lead Hunter & CRM Engine")
     parser.add_argument("--auto", action="store_true", help="Run autonomous prospect discovery mode")
     parser.add_argument("--niche", type=str, default="", help="Business niche (e.g. 'cafes', 'b2b exporters', 'private clinics', 'academies')")
     parser.add_argument("--location", type=str, default="", help="Target city or country (e.g. 'London', 'Dubai', 'Pakistan')")
     parser.add_argument("--count", type=int, default=10, help="Number of prospects to find (default: 10)")
     parser.add_argument("--send", action="store_true", help="Send emails live (requires SENDER_PASSWORD in .env)")
     parser.add_argument("--url", type=str, default="", help="Manual single website audit URL")
+    parser.add_argument("--crm", action="store_true", help="Display CRM pipeline metrics and prospect status")
+    parser.add_argument("--follow-up", action="store_true", help="Run automated 3-day follow-up dispatcher")
+    parser.add_argument("--export-crm", action="store_true", help="Generate and export the team CRM Excel workbook")
+    parser.add_argument("--replied", type=str, default="", help="Mark prospect email as 'Replied'")
 
     args = parser.parse_args()
+
+    # CRM Dashboard Mode
+    if args.crm:
+        show_crm_terminal_dashboard()
+        return
+
+    # Export CRM Sheets Mode
+    if args.export_crm:
+        excel_info = export_team_crm_excel()
+        print(f"{Colors.GREEN}[OK] Generated Master Team CRM Workbook:{Colors.ENDC} {excel_info['latest_xlsx']}")
+        print(f"{Colors.GREEN}[OK] Generated Notion CSV Database:{Colors.ENDC} {excel_info['csv']}")
+        return
+
+    # Mark as replied mode
+    if args.replied:
+        mark_as_replied(args.replied, reply_notes="Marked via CLI command")
+        print(f"{Colors.GREEN}[OK] Marked {args.replied} as 'Replied' in CRM!{Colors.ENDC}")
+        export_team_crm_excel()
+        return
+
+    # Process due follow-ups mode
+    if args.follow_up:
+        print(f"{Colors.BOLD}{Colors.BLUE}[*] Running 3-Day Follow-Up Pipeline...{Colors.ENDC}")
+        dry_run = not args.send
+        process_due_follow_ups(auto_send=args.send, dry_run=dry_run)
+        export_team_crm_excel()
+        return
 
     # If single URL provided, run single audit mode
     if args.url:
@@ -228,9 +308,29 @@ def main():
     location = args.location
     count = args.count
 
-    if not niche:
-        print(f"{Colors.WARNING}Welcome Tariq! Let's find new clients for Tariq & Co. Tech.{Colors.ENDC}")
-        niche = input("What kind of businesses are you targeting? (e.g. cafes, b2b exporters, schools, clinics): ").strip()
+    if not niche and not args.auto:
+        print(f"{Colors.WARNING}Welcome Tariq! Choose an action for Tariq & Co. Tech:{Colors.ENDC}")
+        print("  [1] Hunt New Prospects & Generate Outreach Emails")
+        print("  [2] View CRM Pipeline & Follow-Up Schedule")
+        print("  [3] Process Due 3-Day Follow-Ups")
+        print("  [4] Export Master Team CRM Excel Workbook")
+        choice = input("\nEnter choice [1/2/3/4] (default 1): ").strip()
+
+        if choice == "2":
+            show_crm_terminal_dashboard()
+            return
+        elif choice == "3":
+            dry_run = not args.send
+            process_due_follow_ups(auto_send=args.send, dry_run=dry_run)
+            export_team_crm_excel()
+            return
+        elif choice == "4":
+            excel_info = export_team_crm_excel()
+            print(f"\n{Colors.GREEN}[OK] Master Team CRM Excel Workbook ready:{Colors.ENDC} {excel_info['latest_xlsx']}")
+            return
+
+        # Default: Option 1
+        niche = input("\nWhat kind of businesses are you targeting? (e.g. cafes, b2b exporters, schools, clinics): ").strip()
         if not niche:
             niche = "cafes"
         location = input("What city or country? (e.g. London, Dubai, Pakistan, or press Enter for global): ").strip()
