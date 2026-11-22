@@ -192,26 +192,66 @@ def sync_batch_results_to_crm(batch_results: list, niche: str, location: str) ->
         ids.append(pid)
     return ids
 
-def mark_as_contacted(email_or_id, notes: str = "Initial cold outreach email sent", follow_up_days: int = 3):
-    """Moves a prospect to 'Contacted' stage and schedules a 3-day follow-up."""
+def is_valid_email(email: str) -> bool:
+    """Filters out false-positive emails like Google Fonts wght@400..900 or npm version tags."""
+    if not email or "@" not in email:
+        return False
+    email_clean = email.strip().lower()
+    if any(bad in email_clean for bad in ["wght@", "dompurify@", "npm@", "webpack@", "react@", "@3.", "@4.", ".."]):
+        return False
+    parts = email_clean.split("@")
+    if len(parts) != 2:
+        return False
+    domain = parts[1]
+    if "." not in domain:
+        return False
+    tld = domain.split(".")[-1]
+    return tld.isalpha() and len(tld) >= 2
+
+def find_prospect_row(cur: sqlite3.Cursor, identifier):
+    """Finds a prospect by ID, email, domain, or company name."""
+    if isinstance(identifier, int) or str(identifier).isdigit():
+        cur.execute("SELECT * FROM prospects WHERE id = ?", (int(identifier),))
+        return cur.fetchone()
+
+    val = str(identifier).strip()
+    # Try exact primary email
+    cur.execute("SELECT * FROM prospects WHERE primary_email = ?", (val,))
+    row = cur.fetchone()
+    if row:
+        return row
+
+    # Try domain
+    clean_dom = extract_domain(val)
+    cur.execute("SELECT * FROM prospects WHERE domain = ?", (clean_dom,))
+    row = cur.fetchone()
+    if row:
+        return row
+
+    # Try company name
+    cur.execute("SELECT * FROM prospects WHERE company_name LIKE ?", (f"%{val}%",))
+    row = cur.fetchone()
+    if row:
+        return row
+
+    # Try all_emails
+    cur.execute("SELECT * FROM prospects WHERE all_emails LIKE ?", (f"%{val}%",))
+    return cur.fetchone()
+
+def mark_as_contacted(identifier, notes: str = "Initial cold outreach email sent", follow_up_days: int = 3):
+    """Moves a prospect to 'Contacted' stage and schedules a follow-up."""
     init_db()
     conn = get_connection()
     cur = conn.cursor()
 
     now = datetime.now()
     now_iso = now.strftime("%Y-%m-%d %H:%M:%S")
-    due_iso = (now + timedelta(days=follow_up_days)).strftime("%Y-%m-%d %H:%M:%S")
-
-    if isinstance(email_or_id, int) or str(email_or_id).isdigit():
-        clause = "id = ?"
-        param = int(email_or_id)
+    if follow_up_days <= 0:
+        due_iso = now_iso
     else:
-        clause = "primary_email = ?"
-        param = str(email_or_id).strip()
+        due_iso = (now + timedelta(days=follow_up_days)).strftime("%Y-%m-%d %H:%M:%S")
 
-    cur.execute(f"SELECT id, company_name FROM prospects WHERE {clause}", (param,))
-    row = cur.fetchone()
-
+    row = find_prospect_row(cur, identifier)
     if row:
         pid = row["id"]
         cname = row["company_name"]
@@ -232,7 +272,7 @@ def mark_as_contacted(email_or_id, notes: str = "Initial cold outreach email sen
     conn.commit()
     conn.close()
 
-def mark_as_followed_up(email_or_id, notes: str = "Automated 3-day follow-up email dispatched"):
+def mark_as_followed_up(identifier, notes: str = "Automated 3-day follow-up email dispatched"):
     """Moves a prospect to 'Followed Up' stage."""
     init_db()
     conn = get_connection()
@@ -240,16 +280,7 @@ def mark_as_followed_up(email_or_id, notes: str = "Automated 3-day follow-up ema
 
     now_iso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if isinstance(email_or_id, int) or str(email_or_id).isdigit():
-        clause = "id = ?"
-        param = int(email_or_id)
-    else:
-        clause = "primary_email = ?"
-        param = str(email_or_id).strip()
-
-    cur.execute(f"SELECT id, company_name FROM prospects WHERE {clause}", (param,))
-    row = cur.fetchone()
-
+    row = find_prospect_row(cur, identifier)
     if row:
         pid = row["id"]
         cname = row["company_name"]
@@ -269,7 +300,7 @@ def mark_as_followed_up(email_or_id, notes: str = "Automated 3-day follow-up ema
     conn.commit()
     conn.close()
 
-def mark_as_replied(email_or_id, reply_notes: str = "Client replied to outreach"):
+def mark_as_replied(identifier, reply_notes: str = "Client replied to outreach"):
     """Moves a prospect to 'Replied' stage."""
     init_db()
     conn = get_connection()
@@ -277,16 +308,7 @@ def mark_as_replied(email_or_id, reply_notes: str = "Client replied to outreach"
 
     now_iso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if isinstance(email_or_id, int) or str(email_or_id).isdigit():
-        clause = "id = ?"
-        param = int(email_or_id)
-    else:
-        clause = "primary_email = ?"
-        param = str(email_or_id).strip()
-
-    cur.execute(f"SELECT id, company_name FROM prospects WHERE {clause}", (param,))
-    row = cur.fetchone()
-
+    row = find_prospect_row(cur, identifier)
     if row:
         pid = row["id"]
         cname = row["company_name"]
