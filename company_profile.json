@@ -1,0 +1,122 @@
+{
+  "company": {
+    "name": "Tariq & Co. Tech",
+    "tagline": "Engineering the Future. Building What Matters.",
+    "website": "https://tariq-co-tech.vercel.app",
+    "portfolio_url": "https://tariq-co-tech.vercel.app/work",
+    "email": "tariqcotech@gmail.com",
+    "whatsapp": "+92 314 9574681",
+    "positioning": "Technology company building software solutions, digital experiences, and business automation for small and growing businesses."
+  },
+  "core_services": [
+    {
+      "id": "web_dev",
+      "name": "Full-Stack Web Development",
+      "target_problem": "Business needs an online presence or web tool that works properly and scales.",
+      "deliverables": [
+        "Business websites & landing pages with inquiry flows",
+        "Custom web applications tailored to operational workflows",
+        "Admin dashboards & internal portals",
+        "User accounts, authentication, and role-based access",
+        "Database-driven systems (orders, catalog, inventory)"
+      ],
+      "best_for": ["Growing SMBs", "Service businesses", "Retailers needing custom systems"]
+    },
+    {
+      "id": "workflow_automation",
+      "name": "Workflow Automation",
+      "target_problem": "Teams wasting hours manually copying data, updating spreadsheets, or sending repetitive messages.",
+      "deliverables": [
+        "Connected workflows between existing tools (CRMs, Google Sheets, WhatsApp, email)",
+        "Automated record updates without human error",
+        "Order and inquiry routing straight into databases"
+      ],
+      "best_for": ["E-commerce", "Agencies", "Clinics/Salons", "Wholesale/Distribution"]
+    },
+    {
+      "id": "ui_ux_design",
+      "name": "UI/UX Design & Usability Optimization",
+      "target_problem": "Product or website is crowded, outdated, or confusing, causing visitors to bounce or drop off.",
+      "deliverables": [
+        "Clean, structured interface redesign",
+        "Usability audits and friction-reduction reviews",
+        "Mobile-first responsive wireframes and layouts"
+      ],
+      "best_for": ["SaaS products", "Outdated corporate sites", "Web stores with low conversion"]
+    },
+    {
+      "id": "ai_integration",
+      "name": "AI Integration & Smart Workflows",
+      "target_problem": "Slow manual tasks (content creation, assessments, document extraction) or lagging apps with unoptimized AI.",
+      "deliverables": [
+        "In-app AI features (content generation, smart search)",
+        "Document processing and intelligent data extraction",
+        "Background job queues (BullMQ/Redis) so long-running AI tasks don't block the UI"
+      ],
+      "best_for": ["EdTech", "Legal/Consulting", "Tech Startups", "Platforms handling heavy data"]
+    },
+    {
+      "id": "tech_consulting",
+      "name": "Technical Consulting & Scoping",
+      "target_problem": "Founder or business has an idea but lacks a clear technical plan, scope, or architecture.",
+      "deliverables": [
+        "Clear written scope and timeline before code starts",
+        "Architecture & tech stack selection",
+        "Phased delivery milestones with zero tech jargon"
+      ],
+      "best_for": ["Early-stage founders", "Non-technical business owners"]
+    }
+  ],
+  "case_studies": [
+    {
+      "name": "VidaAI",
+      "category": "AI Assessment Platform",
+      "problem": "AI assessment generation took time and blocked requests, damaging user experience.",
+      "solution": "Built background worker queues with BullMQ and Redis; users receive live progress updates without waiting on lagging requests.",
+      "tech_stack": ["Next.js", "Express", "MongoDB", "Redis", "BullMQ", "WebSockets"],
+      "relevance_trigger": ["Slow AI tools", "EdTech platforms", "Apps needing background task processing"]
+    },
+    {
+      "name": "University Website & Dynamic CMS",
+      "category": "Dynamic CMS & Educational Platform",
+      "problem": "Static website required a software developer for every text and announcement change.",
+      "solution": "Custom dynamic CMS with an admin panel allowing non-technical staff to manage announcements, faculty directories, and media.",
+      "tech_stack": ["PHP", "MySQL", "HTML", "CSS", "Bootstrap"],
+      "relevance_trigger": ["Static websites", "Institutions", "Businesses needing non-technical content management"]
+    },
+    {
+      "name": "Yousafzai Agri Foods",
+      "category": "B2B Export Website & Backend PMS",
+      "problem": "Lacked a credible public presence; manual buyer inquiries and price quotes took excessive staff time.",
+      "solution": "Structured digital B2B catalog with direct quote request workflow and a dedicated backend PMS for live updates without code.",
+      "tech_stack": ["Custom Frontend", "Backend PMS", "Database"],
+      "relevance_trigger": ["B2B traders", "Exporters", "Manufacturers with static product PDFs or messy inquiry forms"]
+    },
+    {
+      "name": "Crispiano Café",
+      "category": "Hospitality & Food Web Experience",
+      "problem": "Customer orders and inquiries were scattered chaotically across Instagram and Facebook DMs.",
+      "solution": "Warm hospitality visual experience with streamlined menu structure and a one-click WhatsApp direct ordering path.",
+      "tech_stack": ["Responsive Frontend", "WhatsApp Ordering Integration"],
+      "relevance_trigger": ["Restaurants", "Cafes", "Local bakeries relying only on chaotic social media DMs"]
+    },
+    {
+      "name": "AI Business SaaS",
+      "category": "Natural Language Business Management",
+      "problem": "Traditional business dashboards are overly complex with too many menus, confusing non-technical owners.",
+      "solution": "Plain-language command interface powered by Gemini API translating plain English into database actions in ~3s.",
+      "tech_stack": ["React", "Node.js", "MongoDB", "Gemini API", "JWT"],
+      "relevance_trigger": ["SMBs needing automated record-keeping", "Internal ops tools"]
+    }
+  ],
+  "outreach_rules": {
+    "spam_prevention": [
+      "Strictly plain-text feel (no heavy HTML, no tracking pixels on initial email)",
+      "Zero spam-trigger buzzwords (e.g., 'guaranteed', '100% free', 'make money fast', 'act now')",
+      "Always reference a specific, verified issue on their actual website",
+      "Short and concise (under 120 words)",
+      "Soft, non-pushy Call-to-Action (e.g., 'Open to seeing a quick 60-second video?' or 'Can I send a 2-point fix?')",
+      "Offer direct WhatsApp chat (+92 314 9574681) for fast friction-free response"
+    ]
+  }
+}
