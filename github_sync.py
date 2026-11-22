@@ -33,7 +33,7 @@ def should_ignore(rel_path: str) -> bool:
             return True
         if p in ["__pycache__", "outreach_drafts", "prospect_sheets", ".git"]:
             return True
-        if p.endswith(".pyc") or p.endswith(".log"):
+        if p.endswith(".pyc") or p.endswith(".log") or p.endswith(".db"):
             return True
     return False
 
