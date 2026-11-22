@@ -1,0 +1,204 @@
+"""
+Excel & CSV Export Engine for Tariq & Co. Tech Client Hunting AI.
+Generates beautifully formatted .xlsx workbooks for HR teams
+and ready-to-import .csv files for Notion databases.
+"""
+
+import csv
+from datetime import datetime
+from pathlib import Path
+
+# Try importing openpyxl for native formatted Excel files
+try:
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
+
+BASE_DIR = Path(__file__).resolve().parent
+
+def export_prospects_to_excel(batch_results: list, niche: str, location: str, output_dir: str = "prospect_sheets"):
+    """
+    Exports audited prospects to an Excel spreadsheet (.xlsx) and a CSV file (.csv)
+    optimized for HR tracking and Notion database imports.
+    """
+    out_path = BASE_DIR / output_dir
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    clean_niche = (niche or "leads").replace(" ", "_").lower()
+    clean_loc = (location or "global").replace(" ", "_").lower()
+
+    xlsx_filename = out_path / f"prospects_{clean_niche}_{clean_loc}_{timestamp}.xlsx"
+    csv_filename = out_path / f"prospects_{clean_niche}_{clean_loc}_{timestamp}.csv"
+
+    headers = [
+        "ID",
+        "Company Name",
+        "Website URL",
+        "Primary Email",
+        "All Emails Found",
+        "Phone Number",
+        "WhatsApp Available",
+        "Industry / Niche",
+        "Target Location",
+        "Detected AI / Automation Gap",
+        "Matched Portfolio Case Study",
+        "Recommended Solution",
+        "Email Subject",
+        "Outreach Status",
+        "HR / Notion Next Action",
+        "Date Discovered"
+    ]
+
+    rows = []
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
+    for idx, item in enumerate(batch_results, 1):
+        target = item.get("audit", {})
+        match = item.get("match", {})
+        outreach = item.get("email", {})
+        lead = item.get("lead", {})
+
+        emails = target.get("emails", [])
+        primary_email = emails[0] if emails else "Not detected (Use contact form)"
+        all_emails = ", ".join(emails) if emails else ""
+
+        phones = target.get("phones", [])
+        primary_phone = phones[0] if phones else "Not detected"
+
+        has_wa = "Yes" if target.get("whatsapp_present") else "No (Needs WhatsApp flow)"
+        
+        row = [
+            idx,
+            outreach.get("company_name", lead.get("name", "Prospect")),
+            target.get("url", lead.get("url", "")),
+            primary_email,
+            all_emails,
+            primary_phone,
+            has_wa,
+            niche.title(),
+            location or "Global",
+            match.get("primary_issue", "Conversion and workflow friction"),
+            outreach.get("matched_case_study", "Crispiano Café / Yousafzai Agri Foods"),
+            match.get("value_angle", "Full-stack modernization & automated workflows"),
+            outreach.get("primary_subject", "quick question"),
+            "Ready for Outreach",
+            "Update Notion Lead Tracker",
+            current_date
+        ]
+        rows.append(row)
+
+    # 1. Export CSV (for direct 1-click import into Notion)
+    with open(csv_filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        writer.writerows(rows)
+
+    # 2. Export Styled Excel Workbook (.xlsx)
+    if OPENPYXL_AVAILABLE:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Prospect Pipeline"
+        ws.views.sheetView[0].showGridLines = True
+
+        # Styles
+        header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")  # Navy Blue
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        regular_font = Font(name="Calibri", size=10)
+        bold_font = Font(name="Calibri", size=10, bold=True)
+        link_font = Font(name="Calibri", size=10, color="0000FF", underline="single")
+        
+        thin_border = Border(
+            left=Side(style='thin', color='D1D5DB'),
+            right=Side(style='thin', color='D1D5DB'),
+            top=Side(style='thin', color='D1D5DB'),
+            bottom=Side(style='thin', color='D1D5DB')
+        )
+        
+        alt_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+
+        # Write Title Banner
+        ws.merge_cells("A1:P1")
+        title_cell = ws["A1"]
+        title_cell.value = f"TARIQ & CO. TECH — CLIENT PROSPECTING PIPELINE ({niche.upper()} - {location.upper() or 'GLOBAL'})"
+        title_cell.font = Font(name="Calibri", size=14, bold=True, color="1E3A8A")
+        title_cell.alignment = Alignment(horizontal="left", vertical="center")
+        ws.row_dimensions[1].height = 30
+
+        # Subtitle info
+        ws.merge_cells("A2:P2")
+        sub_cell = ws["A2"]
+        sub_cell.value = f"Generated by Tariq & Co. Tech Client Hunting AI  |  Date: {datetime.now().strftime('%B %d, %Y')}  |  Website: tariq-co-tech.vercel.app  |  WhatsApp: +92 314 9574681"
+        sub_cell.font = Font(name="Calibri", size=9, italic=True, color="6B7280")
+        ws.row_dimensions[2].height = 18
+
+        # Blank row
+        ws.row_dimensions[3].height = 10
+
+        # Header Row (Row 4)
+        ws.row_dimensions[4].height = 28
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=4, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.border = thin_border
+
+        # Data Rows (Row 5+)
+        for row_idx, row_data in enumerate(rows, start=5):
+            ws.row_dimensions[row_idx].height = 24
+            is_alt = (row_idx % 2 == 0)
+            
+            for col_idx, value in enumerate(row_data, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                cell.font = regular_font
+                cell.border = thin_border
+                cell.alignment = Alignment(vertical="center")
+
+                # Alternating light zebra striping
+                if is_alt:
+                    cell.fill = alt_fill
+
+                # Special column alignments
+                if col_idx in [1, 7, 14, 16]:  # ID, WhatsApp, Status, Date
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                # Make company name bold
+                if col_idx == 2:
+                    cell.font = bold_font
+
+                # Hyperlink for Website URL
+                if col_idx == 3 and str(value).startswith("http"):
+                    cell.hyperlink = value
+                    cell.font = link_font
+
+                # Highlight primary email
+                if col_idx == 4 and "@" in str(value):
+                    cell.font = bold_font
+
+        # Auto-adjust column widths
+        for col in ws.columns:
+            col_letter = get_column_letter(col[0].column)
+            max_len = 0
+            for cell in col:
+                if cell.row >= 4 and cell.value:
+                    max_len = max(max_len, len(str(cell.value)))
+            ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
+
+        ws.column_dimensions['A'].width = 6   # ID
+        ws.column_dimensions['B'].width = 22  # Company Name
+        ws.column_dimensions['C'].width = 28  # Website URL
+        ws.column_dimensions['D'].width = 26  # Primary Email
+        ws.column_dimensions['J'].width = 38  # Detected Gap
+        ws.column_dimensions['K'].width = 26  # Case study
+        ws.column_dimensions['L'].width = 32  # Solution
+
+        wb.save(xlsx_filename)
+
+    return {
+        "xlsx": xlsx_filename if OPENPYXL_AVAILABLE else None,
+        "csv": csv_filename
+    }
