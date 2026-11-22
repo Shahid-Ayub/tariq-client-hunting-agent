@@ -14,6 +14,8 @@ __pycache__/
 outreach_drafts/
 prospect_sheets/
 *.log
+*.db
+crm.db
 
 # OS artifacts
 .DS_Store
