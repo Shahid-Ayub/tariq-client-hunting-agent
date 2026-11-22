@@ -80,6 +80,37 @@ All discovered leads and drafted emails are saved in:
 
 ---
 
+## 📊 Automated CRM Pipeline & Follow-Up Scheduler
+
+The agent features an integrated **SQLite CRM (`crm.db`)** that tracks every prospect from discovery to closing:
+`Discovered` $\rightarrow$ `Contacted` $\rightarrow$ `Followed Up` $\rightarrow$ `Replied` $\rightarrow$ `Closed`
+
+### Useful Commands:
+```bash
+# 1. View live CRM dashboard & conversion rates
+python hunt.py --crm
+
+# 2. Process automated 3-day follow-ups for due prospects
+python hunt.py --follow-up
+
+# 3. Send due follow-ups live via Gmail SMTP
+python hunt.py --follow-up --send
+
+# 4. Generate the latest multi-tab Team Excel Workbook
+python hunt.py --export-crm
+
+# 5. Mark a prospect as 'Replied' when they respond
+python hunt.py --replied "client@example.com"
+```
+
+### 📑 Shareable Team Excel Workbook
+Saved at: `prospect_sheets/Tariq_and_Co_Tech_Team_CRM_Latest.xlsx`
+- **Tab 1: Executive KPI Dashboard** (Total Leads, Contacted, Awaiting Follow-up, Response Rate).
+- **Tab 2: Prospect Tracker** (Company, Email, Stage, Urgency, Follow-Up Due Date, Matched Case Study).
+- **Tab 3: Outreach Copy Vault** (Cold Email Body, 3-Day Follow-Up, WhatsApp DM script).
+
+---
+
 ## 🐙 Sync to GitHub
 
 Target repository: `https://github.com/Shahid-Ayub/tariq-client-hunting-agent`
