@@ -1,0 +1,76 @@
+%PDF-1.4
+1 0 obj
+<</Type/Catalog/Pages 2 0 R>>
+endobj
+2 0 obj
+<</Type/Pages/Kids[3 0 R]/Count 1>>
+endobj
+3 0 obj
+<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<</Font<</F1 5 0 R>>>>/Contents 4 0 R>>
+endobj
+4 0 obj
+<</Length 2980>>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+14 TL
+/F1 16 Tf (Tariq & Co. Tech - Company Catalog & Capabilities) Tj T* /F1 10 Tf
+(Engineering the Future. Building What Matters.) Tj T*
+(Website: https://tariq-co-tech.vercel.app  |  Email: tariqcotech@gmail.com  |  WhatsApp: +92 314 9574681) Tj T*
+(----------------------------------------------------------------------------------------------------) Tj T*
+() Tj T*
+T* /F1 12 Tf (1. WHO WE ARE) Tj T* /F1 10 Tf
+/F1 16 Tf (Tariq & Co. Tech builds software solutions, digital experiences, and workflow automation for growing businesses.) Tj T* /F1 10 Tf
+(We start with your business problem, build something practical, and keep you informed along the way.) Tj T*
+() Tj T*
+T* /F1 12 Tf (2. CORE SERVICES) Tj T* /F1 10 Tf
+(* Full-Stack Web Development: Custom web applications, admin dashboards, database-driven apps, logins & accounts.) Tj T*
+(* Workflow Automation: Connecting tools \(sheets, messages, databases\) to eliminate manual copying and repetitive work.) Tj T*
+(* UI/UX Design: Clean interface redesigns, wireframes, and usability reviews that eliminate visitor friction.) Tj T*
+(* AI Integration: Smart document extraction, in-app AI features, and background worker queues \(BullMQ/Redis\).) Tj T*
+(* Technical Consulting & Scoping: Clear written scope, tech stack evaluation, and phased delivery roadmaps.) Tj T*
+() Tj T*
+T* /F1 12 Tf (3. PROVEN CASE STUDIES) Tj T* /F1 10 Tf
+(* Crispiano Cafe \(Hospitality Web Experience\):) Tj T*
+(  - Problem: Orders and customer inquiries scattered across social media DMs.) Tj T*
+(  - Solution: Clean mobile web experience with direct 1-click WhatsApp ordering flow.) Tj T*
+() Tj T*
+(* Yousafzai Agri Foods \(B2B Website + Backend PMS\):) Tj T*
+(  - Problem: Manual buyer inquiries and static PDF catalogs consuming excessive staff time.) Tj T*
+(  - Solution: Structured B2B digital catalog and direct quote engine with a custom management portal.) Tj T*
+() Tj T*
+(* VidaAI \(AI Assessment Platform\):) Tj T*
+(  - Problem: AI content generation held up normal app requests and caused user lag.) Tj T*
+(  - Solution: Built asynchronous background queue workers with BullMQ & Redis for live progress updates.) Tj T*
+() Tj T*
+(* University Website & Dynamic CMS:) Tj T*
+(  - Problem: Static site required a software developer for every simple announcement change.) Tj T*
+(  - Solution: Custom dynamic admin panel so non-technical staff manage pages, announcements, and media.) Tj T*
+() Tj T*
+(* AI Business SaaS \(Natural Language Operations\):) Tj T*
+(  - Problem: Complex, menu-heavy dashboards overwhelming non-technical owners.) Tj T*
+(  - Solution: Plain-English conversational commands powered by Gemini API executing database actions in ~3s.) Tj T*
+() Tj T*
+T* /F1 12 Tf (4. HOW TO GET STARTED) Tj T* /F1 10 Tf
+(Message us on WhatsApp \(+92 314 9574681\) for a free first conversation, or email tariqcotech@gmail.com.) Tj T*
+(Full case studies and live demos: tariq-co-tech.vercel.app/work) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000054 00000 n 
+0000000105 00000 n 
+0000000217 00000 n 
+0000003246 00000 n 
+trailer
+<</Size 6/Root 1 0 R>>
+startxref
+3309
+%%EOF
